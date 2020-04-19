@@ -17,6 +17,8 @@ boolean leftPressed = false;
 boolean rightPressed = false;
 //general
 final float blockSize = 80.0;
+float blockCoordinateX = 4.0;
+float blockCoordinateY = 1.0;
 int timeNow, timeLast;
 int frameBegin, frameLast, frameDiff;
 //soldier
@@ -24,8 +26,8 @@ float soldierX = 0.0;
 float soldierY = floor(random(2, 6)) * blockSize;
 float soldierSpeed = 2.0;
 //groundHog
-float ghX = 4.0 * blockSize;
-float ghY = 1.0 * blockSize;
+float ghX = blockCoordinateX * blockSize;
+float ghY = blockCoordinateY * blockSize;
 //cabbage
 float cabbageX = floor(random(0, 8)) * blockSize;
 float cabbageY = floor(random(2, 6)) * blockSize;
@@ -69,7 +71,6 @@ void draw() {
       drawCabbage(); //draw cabbage and detect collision with groundhog.
       drawSoldier(); //draw soldier and detect collision with groundhog.
       drawGH(); //using key pressed and framecount to control groundhog. 
-      
       if(lifeCount == 0){gameState = GAME_OVER;} // if life count down to zero then game is over.
       break;
       
@@ -136,7 +137,7 @@ void drawSoldier(){
   //detect if soldier is out of boundary.
   if(soldierX > width){soldierX = -soldier.width;}
   //detect collision between soldier and grounhog.
-  if( soldierX < (ghX + blockSize) && (soldierX + blockSize) > ghX && soldierY < (ghY + blockSize) && (soldierY + blockSize) > ghY ){
+  if( ghX < (soldierX + blockSize) && (ghX + blockSize) > soldierX && ghY < (soldierY + blockSize) && (ghY + blockSize) > soldierY ){
     lifeCount--; //lose life.
     //initial groundhog's position and moving state.
     ghX = 4 * blockSize;
@@ -148,26 +149,39 @@ void drawSoldier(){
 }
 
 void drawGH(){ 
+  
   //control grounghold via framenumber
   frameBegin = frameLast; //record the beginning frame number
   frameDiff = frameCount - frameBegin; //calculate frame difference between start and now. frameDiff must >= 1.
   
   if (downPressed) {
-    // divide a block into 14 sections, start counting frame numbers when key pressed and moving one section each frame.
-    if(frameDiff < 15){image(ghDown, ghX, ghY += (blockSize / 14.0));}
-    else{downPressed = false;} //after 15 frames, groundhog move one block and turn to IDLE.
+    // divide a block into 15 sections, start counting frame numbers when key pressed and moving one section each frame.
+    if(frameDiff < 15){image(ghDown, ghX, ghY += (blockSize / 15.0));}
+    else{
+      downPressed = false;
+      ghY = (blockCoordinateY + 1)* 80.0;
+    } //after 15 frames, groundhog move one block and turn to IDLE.
   }
   else if (leftPressed) {
-    if(frameDiff < 15){image(ghLeft, ghX -= (blockSize / 14.0), ghY);}
-    else{leftPressed = false;} 
+    if(frameDiff < 15){image(ghLeft, ghX -= (blockSize / 15.0), ghY);}
+    else{
+      leftPressed = false;
+      ghX = (blockCoordinateX - 1) * 80.0;
+    } 
   }
   else if (rightPressed) {
-    if(frameDiff < 15){image(ghRight, ghX += (blockSize / 14.0), ghY);}
-    else{rightPressed = false;}
+    if(frameDiff < 15){image(ghRight, ghX += (blockSize / 15.0), ghY);}
+    else{
+      rightPressed = false;
+      ghX = (blockCoordinateX + 1) * 80.0;
+    }
   } 
   else{
     frameLast = frameCount; //update the new beginning frame only when IDLE
     image(ghIdle, ghX, ghY);
+    //record block coordinate
+    blockCoordinateX = floor(ghX / 80.0);
+    blockCoordinateY = floor(ghY / 80.0);
   }
   
   //boundary detection
